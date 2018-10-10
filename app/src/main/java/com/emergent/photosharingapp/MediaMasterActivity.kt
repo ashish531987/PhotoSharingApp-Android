@@ -5,14 +5,13 @@ import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.arch.paging.PagedList
+import android.content.Intent
 import android.os.Bundle
-import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.RecyclerView.Adapter
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import com.emergent.photosharingapp.api.MediaSharingApi
 import com.emergent.photosharingapp.domain.Media
 import com.emergent.photosharingapp.repository.MediaRepository
@@ -36,10 +35,7 @@ class MediaMasterActivity : AppCompatActivity() {
         initAdapter()
         initSwipeToRefresh()
         setSupportActionBar(toolbar)
-        fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-        }
+        fab.setOnClickListener { mediaMasterViewModel.addImageFABClicked(mediaMasterViewModel.REQ_CODE_GALLERY_IMAGE_CAPTURE, this)}
         mediaMasterViewModel.showSubreddit("1")
     }
 
@@ -79,6 +75,9 @@ class MediaMasterActivity : AppCompatActivity() {
         mediaMasterViewModel.networkState.observe(this, Observer {
             adapter.setNetworkState(it)
         })
+        mediaMasterViewModel.mediaDownloaded.observe(this, Observer {
+            Toast.makeText(this, "Hi file upload started", Toast.LENGTH_SHORT).show()
+        })
     }
     private fun initSwipeToRefresh() {
         mediaMasterViewModel.refreshState.observe(this, Observer {
@@ -87,5 +86,9 @@ class MediaMasterActivity : AppCompatActivity() {
         swipe_refresh.setOnRefreshListener {
             mediaMasterViewModel.refresh()
         }
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        mediaMasterViewModel.onActivityResult(this, requestCode, resultCode, data)
     }
 }

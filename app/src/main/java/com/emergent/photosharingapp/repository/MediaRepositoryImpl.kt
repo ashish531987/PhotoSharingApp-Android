@@ -16,11 +16,21 @@
 
 package com.emergent.photosharingapp.repository
 
+import android.arch.lifecycle.LiveData
+import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
 import android.arch.paging.LivePagedListBuilder
+import android.net.Uri
 import android.support.annotation.MainThread
 import com.emergent.photosharingapp.api.MediaSharingApi
 import com.emergent.photosharingapp.domain.Media
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import java.io.File
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
@@ -56,6 +66,11 @@ class MediaRepositoryImpl(private val mediaSharingApi: MediaSharingApi) : MediaR
                 },
                 refreshState = refreshState
         )
+    }
+    override fun uploadMedia(userId: String, file: File, callback:Callback<Media>) {
+        val filePart = MultipartBody.Part.createFormData("file", file.getName(), RequestBody.create(MediaType.parse("image/*"), file))
+        val request = mediaSharingApi.uploadMedia(userId, filePart)
+        request.enqueue(callback)
     }
 }
 

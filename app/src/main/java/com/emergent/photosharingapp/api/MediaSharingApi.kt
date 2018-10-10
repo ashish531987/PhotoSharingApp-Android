@@ -19,14 +19,13 @@ package com.emergent.photosharingapp.api
 import android.util.Log
 import com.emergent.photosharingapp.domain.Media
 import okhttp3.HttpUrl
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.GET
-import retrofit2.http.Path
-import retrofit2.http.Query
+import retrofit2.http.*
 
 /**
  * API communication setup
@@ -44,6 +43,12 @@ interface MediaSharingApi {
             @Path("user_id") userId: String,
             @Query("after") after: String,
             @Query("limit") limit: Int): Call<ListingResponse>
+
+    @Multipart
+    @POST("/{user_id}/media/")
+    fun uploadMedia(
+            @Path("user_id") userId: String,
+            @Part filePart : MultipartBody.Part): Call<Media>
 
     class ListingResponse(val data: ListingData)
 
