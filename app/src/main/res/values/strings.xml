@@ -2,4 +2,6 @@
     <string name="app_name">PhotoSharingApp</string>
     <string name="action_settings">Settings</string>
     <string name="retry">Retry</string>
+    <string name="read_perm_request_dialog_msg">Permission to access the storage is required for this app to upload photos.</string>
+    <string name="read_perm_request_dialog_title">Permission required</string>
 </resources>

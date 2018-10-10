@@ -1,12 +1,17 @@
 package com.emergent.photosharingapp
 
+import android.Manifest
 import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModel
 import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.arch.paging.PagedList
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.Menu
@@ -26,6 +31,8 @@ class MediaMasterActivity : AppCompatActivity() {
     private var mediaSharingApi = MediaSharingApi.create()
     private var mediaRepository = com.emergent.photosharingapp.repository.MediaRepositoryImpl(mediaSharingApi)
     private lateinit var adapter : MediaRecyclerAdapter
+    private val REQ_READ_EXT_STORAGE_PERM: Int = 1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_master)
@@ -35,8 +42,40 @@ class MediaMasterActivity : AppCompatActivity() {
         initAdapter()
         initSwipeToRefresh()
         setSupportActionBar(toolbar)
-        fab.setOnClickListener { mediaMasterViewModel.addImageFABClicked(mediaMasterViewModel.REQ_CODE_GALLERY_IMAGE_CAPTURE, this)}
-        mediaMasterViewModel.showSubreddit("1")
+        fab.setOnClickListener {
+            val permissionFromReadStorage = (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+            == PackageManager.PERMISSION_GRANTED)
+            if(permissionFromReadStorage) {
+                // Permission already granted
+                mediaMasterViewModel.fabClicked(mediaMasterViewModel.REQ_CODE_GALLERY_IMAGE_CAPTURE, this)
+            } else{
+                if(ActivityCompat.shouldShowRequestPermissionRationale(this,
+                                Manifest.permission.READ_EXTERNAL_STORAGE)){
+                    // Show why do you need permission
+                    val builder = AlertDialog.Builder(this)
+                    builder.setMessage(R.string.read_perm_request_dialog_msg)
+                            .setTitle(R.string.read_perm_request_dialog_title)
+
+                    builder.setPositiveButton("OK"
+                    ) { dialog, id ->
+                        makeRequest()
+                    }
+
+                    val dialog = builder.create()
+                    dialog.show()
+                } else{
+                    // Get permission
+                    makeRequest()
+                }
+            }
+        }
+        mediaMasterViewModel.setUserId("1")
+    }
+
+    private fun makeRequest() {
+        ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                REQ_READ_EXT_STORAGE_PERM)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -76,7 +115,7 @@ class MediaMasterActivity : AppCompatActivity() {
             adapter.setNetworkState(it)
         })
         mediaMasterViewModel.mediaDownloaded.observe(this, Observer {
-            Toast.makeText(this, "Hi file upload started", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "File upload completed", Toast.LENGTH_SHORT).show()
         })
     }
     private fun initSwipeToRefresh() {
@@ -90,5 +129,27 @@ class MediaMasterActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         mediaMasterViewModel.onActivityResult(this, requestCode, resultCode, data)
+    }
+    override fun onRequestPermissionsResult(requestCode: Int,
+                                            permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            REQ_READ_EXT_STORAGE_PERM -> {
+                // If request is cancelled, the result arrays are empty.
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // read storage permission was granted, yay! Do related task
+                    mediaMasterViewModel.fabClicked(mediaMasterViewModel.REQ_CODE_GALLERY_IMAGE_CAPTURE, this)
+                } else {
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                }
+                return
+            }
+
+            // Add other 'when' lines to check for other
+            // permissions this app might request.
+            else -> {
+                // Ignore all other requests.
+            }
+        }
     }
 }

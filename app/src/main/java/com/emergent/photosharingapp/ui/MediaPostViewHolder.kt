@@ -48,11 +48,9 @@ class MediaPostViewHolder(view: View, private val glide: GlideRequests)
         userCaptionTV.text = media?.caption ?: ""
         likesCountTV.text = media?.likeCount.toString()
         if (media?.downloadURI?.startsWith("http") == true) {
-            Log.d("Inside Media","Media : "+media.id)
-            Log.d("Inside Media","Media url: "+media.downloadURI)
             userIV.visibility = View.VISIBLE
             glide.load(media.downloadURI)
-                    .fitCenter()
+                    .centerCrop()
                     .placeholder(R.drawable.ic_insert_photo_black_48dp)
                     .into(userIV)
         } else {
@@ -68,10 +66,5 @@ class MediaPostViewHolder(view: View, private val glide: GlideRequests)
                     .inflate(R.layout.media_recycleview_row, parent, false)
             return MediaPostViewHolder(view, glide)
         }
-    }
-
-    fun updateLike(item: Media?) {
-        media = item
-        likesCountTV.text = "${item?.likeCount ?: 0}"
     }
 }

@@ -31,19 +31,6 @@ class MediaRecyclerAdapter(private val glide: GlideRequests,
         return super.getItemCount() + if (hasExtraRow()) 1 else 0
     }
 
-/*
-    override fun onBindViewHolder(
-            holder: RecyclerView.ViewHolder,
-            position: Int,
-            payloads: MutableList<Any>) {
-        if (payloads.isNotEmpty()) {
-            val item = getItem(position)
-            (holder as MediaPostViewHolder).updateLike(item)
-        } else {
-            onBindViewHolder(holder, position)
-        }
-    }
-*/
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             R.layout.media_recycleview_row -> MediaPostViewHolder.create(parent, glide)
@@ -77,28 +64,12 @@ class MediaRecyclerAdapter(private val glide: GlideRequests,
         }
     }
     companion object {
-        private val PAYLOAD_SCORE = Any()
         val POST_COMPARATOR = object : DiffUtil.ItemCallback<Media>() {
             override fun areContentsTheSame(oldItem: Media, newItem: Media): Boolean =
                     oldItem == newItem
 
             override fun areItemsTheSame(oldItem: Media, newItem: Media): Boolean =
                     oldItem.id == newItem.id
-//
-//            override fun getChangePayload(oldItem: Media, newItem: Media): Any? {
-//                return if (sameExceptLikeCount(oldItem, newItem)) {
-//                    PAYLOAD_SCORE
-//                } else {
-//                    null
-//                }
-//            }
-        }
-
-        private fun sameExceptLikeCount(oldItem: Media, newItem: Media): Boolean {
-            // DON'T do this copy in a real app, it is just convenient here for the demo :)
-            // because reddit randomizes scores, we want to pass it as a payload to minimize
-            // UI updates between refreshes
-            return oldItem.copy(likeCount = newItem.likeCount) == newItem
         }
     }
 

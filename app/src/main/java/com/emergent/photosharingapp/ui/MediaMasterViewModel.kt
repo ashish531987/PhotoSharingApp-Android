@@ -1,27 +1,20 @@
 package com.emergent.photosharingapp.ui
 
 import android.app.Activity.RESULT_OK
-import android.arch.lifecycle.*
+import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations.map
 import android.arch.lifecycle.Transformations.switchMap
+import android.arch.lifecycle.ViewModel
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.provider.MediaStore
-import android.provider.OpenableColumns
 import android.support.v7.app.AppCompatActivity
 import com.emergent.photosharingapp.Utils.FileUtils
 import com.emergent.photosharingapp.domain.Media
-
 import com.emergent.photosharingapp.repository.MediaRepository
-import com.emergent.photosharingapp.repository.NetworkState
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStreamReader
-import java.nio.file.StandardCopyOption
 
 class MediaMasterViewModel(private val repository: MediaRepository) : ViewModel() {
     val REQ_CODE_GALLERY_IMAGE_CAPTURE = 1;
@@ -37,11 +30,11 @@ class MediaMasterViewModel(private val repository: MediaRepository) : ViewModel(
     fun refresh() {
         repoResult.value?.refresh?.invoke()
     }
-    fun showSubreddit(subreddit: String): Boolean {
-        if (userId.value == subreddit) {
+    fun setUserId(userId: String): Boolean {
+        if (this.userId.value == userId) {
             return false
         }
-        userId.value = subreddit
+        this.userId.value = userId
         return true
     }
 
@@ -49,7 +42,7 @@ class MediaMasterViewModel(private val repository: MediaRepository) : ViewModel(
         val listing = repoResult?.value
         listing?.retry?.invoke()
     }
-    fun addImageFABClicked(requestCode:Int, activity:AppCompatActivity){
+    fun fabClicked(requestCode:Int, activity:AppCompatActivity){
         val pickPhoto = Intent(Intent.ACTION_PICK,
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         activity.startActivityForResult(pickPhoto , requestCode)
