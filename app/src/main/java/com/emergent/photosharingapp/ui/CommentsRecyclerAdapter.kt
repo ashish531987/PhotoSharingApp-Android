@@ -1,27 +1,21 @@
 package com.emergent.photosharingapp.ui
 
 import android.arch.paging.PagedListAdapter
-import android.content.Context
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import com.emergent.photosharingapp.GlideRequests
 import com.emergent.photosharingapp.R
+import com.emergent.photosharingapp.domain.Comments
 import com.emergent.photosharingapp.domain.Media
 import com.emergent.photosharingapp.repository.NetworkState
-import kotlinx.android.synthetic.main.media_recycleview_row.view.*
 
-class MediaRecyclerAdapter(private val onClick: (Media, Int) -> Unit,
-                           private val onCommentsIBClick : (Media) -> Unit,
-                           private val glide: GlideRequests,
-                           private val retryCallback: () -> Unit) :
-        PagedListAdapter<Media, RecyclerView.ViewHolder>(POST_COMPARATOR) {
+class CommentsRecyclerAdapter(private val onCommentsIBClick : (Media) -> Unit,
+                              private val retryCallback: () -> Unit) :
+        PagedListAdapter<Comments, RecyclerView.ViewHolder>(POST_COMPARATOR) {
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (getItemViewType(position)) {
-            R.layout.media_recycleview_row -> (holder as MediaPostViewHolder).bind(getItem(position))
+            R.layout.comment_recycleview_row -> (holder as CommentsViewHolder).bind(getItem(position))
             R.layout.network_state_item -> (holder as NetworkStateItemViewHolder).bindTo(
                     networkState)
         }
@@ -34,7 +28,7 @@ class MediaRecyclerAdapter(private val onClick: (Media, Int) -> Unit,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            R.layout.media_recycleview_row -> MediaPostViewHolder.create(onClick, onCommentsIBClick, parent, glide)
+            R.layout.comment_recycleview_row -> CommentsViewHolder.create(onCommentsIBClick, parent)
             R.layout.network_state_item -> NetworkStateItemViewHolder.create(parent, retryCallback)
             else -> throw IllegalArgumentException("unknown view type $viewType")
         }
@@ -43,7 +37,7 @@ class MediaRecyclerAdapter(private val onClick: (Media, Int) -> Unit,
         return if (hasExtraRow() && position == itemCount - 1) {
             R.layout.network_state_item
         } else {
-            R.layout.media_recycleview_row
+            R.layout.comment_recycleview_row
         }
     }
 
@@ -65,11 +59,11 @@ class MediaRecyclerAdapter(private val onClick: (Media, Int) -> Unit,
         }
     }
     companion object {
-        val POST_COMPARATOR = object : DiffUtil.ItemCallback<Media>() {
-            override fun areContentsTheSame(oldItem: Media, newItem: Media): Boolean =
+        val POST_COMPARATOR = object : DiffUtil.ItemCallback<Comments>() {
+            override fun areContentsTheSame(oldItem: Comments, newItem: Comments): Boolean =
                     oldItem == newItem
 
-            override fun areItemsTheSame(oldItem: Media, newItem: Media): Boolean =
+            override fun areItemsTheSame(oldItem: Comments, newItem: Comments): Boolean =
                     oldItem.id == newItem.id
 
         }

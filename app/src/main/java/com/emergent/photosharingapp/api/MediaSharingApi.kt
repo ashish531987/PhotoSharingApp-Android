@@ -17,6 +17,8 @@
 package com.emergent.photosharingapp.api
 
 import android.util.Log
+import com.emergent.photosharingapp.api.dto.requestDTO.CommentRequestDTO
+import com.emergent.photosharingapp.domain.Comments
 import com.emergent.photosharingapp.domain.Media
 import okhttp3.HttpUrl
 import okhttp3.MultipartBody
@@ -34,7 +36,7 @@ interface MediaSharingApi {
     @GET("/{user_id}/feed")
     fun getTop(
             @Path("user_id") userId: String,
-            @Query("limit") limit: Int): Call<ListingResponse>
+            @Query("limit") limit: Int): Call<ListingResponse<Media>>
 
     // for after/before param, either get from RedditDataResponse.after/before,
     // or pass RedditNewsDataResponse.name (though this is technically incorrect)
@@ -42,7 +44,7 @@ interface MediaSharingApi {
     fun getTopAfter(
             @Path("user_id") userId: String,
             @Query("after") after: String,
-            @Query("limit") limit: Int): Call<ListingResponse>
+            @Query("limit") limit: Int): Call<ListingResponse<Media>>
 
     @Multipart
     @POST("/{user_id}/media/")
@@ -50,10 +52,39 @@ interface MediaSharingApi {
             @Path("user_id") userId: String,
             @Part filePart : MultipartBody.Part): Call<Media>
 
-    class ListingResponse(val data: ListingData)
+    @GET("/{user_id}/media/{media_id}/comment")
+    fun getTopComments(
+            @Path("user_id") userId: String,
+            @Path("media_id") mediaId: Long,
+            @Query("limit") limit: Int
+    ) : Call<ListingResponse<Comments>>
 
-    class ListingData(
-            val children: List<Media>,
+    @GET("/{user_id}/media/{media_id}/comment")
+    fun getTopCommentsAfter(
+            @Path("user_id") userId: String,
+            @Path("media_id") mediaId: Long,
+            @Query("after") after: String,
+            @Query("limit") limit: Int
+    ) : Call<ListingResponse<Comments>>
+
+    @PUT("/{user_id}/media/{media_id}/like")
+    fun likeMedia(@Path("user_id") userId: String,
+                  @Path("media_id") mediaId: Long) : Call<Media>
+
+    @DELETE("/{user_id}/media/{media_id}/like")
+    fun unlikeMedia(@Path("user_id") userId: String,
+                  @Path("media_id") mediaId: Long) : Call<Media>
+
+    @POST("/{user_id}/media/{media_id}/comment")
+    fun commentOnMedia(@Path("user_id") userId: String,
+                  @Path("media_id") mediaId: Long,
+                    @Body commentRequestDTO : CommentRequestDTO) : Call<Media>
+
+
+    class ListingResponse<T>(val data: ListingData<T>)
+
+    class ListingData<T>(
+            val children: List<T>,
             val after: String?,
             val before: String?
     )

@@ -3,7 +3,7 @@ package com.emergent.photosharingapp.repository
 import android.arch.lifecycle.MutableLiveData
 import android.arch.paging.PageKeyedDataSource
 import com.emergent.photosharingapp.api.MediaSharingApi
-import com.emergent.photosharingapp.domain.Media
+import com.emergent.photosharingapp.domain.Comments
 import retrofit2.Call
 import retrofit2.Response
 import java.io.IOException
@@ -13,10 +13,11 @@ import java.util.concurrent.Executor
  * A data source that uses the before/after keys returned in page requests.
  * <p>
  */
-class PageKeyedMediaDataSource(
+class PageKeyedCommentsDataSource(
         private val mediaSharingApi: MediaSharingApi,
         private val userId: String,
-        private val retryExecutor: Executor) : PageKeyedDataSource<String, Media>() {
+        private val mediaId: Long,
+        private val retryExecutor: Executor) : PageKeyedDataSource<String, Comments>() {
 
     // keep a function reference for the retry event
     private var retry: (() -> Any)? = null
@@ -41,17 +42,18 @@ class PageKeyedMediaDataSource(
 
     override fun loadBefore(
             params: LoadParams<String>,
-            callback: LoadCallback<String, Media>) {
+            callback: LoadCallback<String, Comments>) {
         // ignored, since we only ever append to our initial load
     }
 
-    override fun loadAfter(params: LoadParams<String>, callback: LoadCallback<String, Media>) {
+    override fun loadAfter(params: LoadParams<String>, callback: LoadCallback<String, Comments>) {
         networkState.postValue(NetworkState.LOADING)
-        mediaSharingApi.getTopAfter(userId = userId,
+        mediaSharingApi.getTopCommentsAfter(userId = userId,
+                mediaId = mediaId,
                 after = params.key,
                 limit = params.requestedLoadSize).enqueue(
-                object : retrofit2.Callback<MediaSharingApi.ListingResponse<Media>> {
-                    override fun onFailure(call: Call<MediaSharingApi.ListingResponse<Media>>, t: Throwable) {
+                object : retrofit2.Callback<MediaSharingApi.ListingResponse<Comments>> {
+                    override fun onFailure(call: Call<MediaSharingApi.ListingResponse<Comments>>, t: Throwable) {
                         retry = {
                             loadAfter(params, callback)
                         }
@@ -59,11 +61,11 @@ class PageKeyedMediaDataSource(
                     }
 
                     override fun onResponse(
-                            call: Call<MediaSharingApi.ListingResponse<Media>>,
-                            response: Response<MediaSharingApi.ListingResponse<Media>>) {
+                            call: Call<MediaSharingApi.ListingResponse<Comments>>,
+                            response: Response<MediaSharingApi.ListingResponse<Comments>>) {
                         if (response.isSuccessful) {
                             val data = response.body()?.data
-                            val items = data?.children as List<Media>
+                            val items = data?.children as List<Comments>
                             retry = null
                             callback.onResult(items, data.after)
                             networkState.postValue(NetworkState.LOADED)
@@ -81,9 +83,10 @@ class PageKeyedMediaDataSource(
 
     override fun loadInitial(
             params: LoadInitialParams<String>,
-            callback: LoadInitialCallback<String, Media>) {
-        val request = mediaSharingApi.getTop(
+            callback: LoadInitialCallback<String, Comments>) {
+        val request = mediaSharingApi.getTopComments(
                 userId = userId,
+                mediaId = mediaId,
                 limit = params.requestedLoadSize
         )
         networkState.postValue(NetworkState.LOADING)
@@ -93,7 +96,7 @@ class PageKeyedMediaDataSource(
         try {
             val response = request.execute()
             val data = response.body()?.data
-            val items = data?.children as List<Media>
+            val items = data?.children as List<Comments>
             retry = null
             networkState.postValue(NetworkState.LOADED)
             initialLoad.postValue(NetworkState.LOADED)

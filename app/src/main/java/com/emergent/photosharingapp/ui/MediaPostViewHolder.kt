@@ -16,6 +16,8 @@
 
 package com.emergent.photosharingapp.ui
 
+import android.content.Intent
+import android.net.Uri
 import android.support.v7.widget.RecyclerView
 import android.util.Log
 import android.view.LayoutInflater
@@ -32,7 +34,9 @@ import kotlinx.android.synthetic.main.media_recycleview_row.view.*
 /**
  * A RecyclerView ViewHolder that displays a reddit post.
  */
-class MediaPostViewHolder(view: View, private val glide: GlideRequests)
+class MediaPostViewHolder(val onClick: (Media, Int) -> Unit,
+                          val onCommentsIBClick : (Media) -> Unit,
+                          view: View, private val glide: GlideRequests)
     : RecyclerView.ViewHolder(view) {
     private val userTV: TextView = view.userNameTV
     private val userIV : ImageView = view.userIV
@@ -41,12 +45,20 @@ class MediaPostViewHolder(view: View, private val glide: GlideRequests)
     private val userCaptionTV: TextView = view.userCaptionTV
     private val likesCountTV: TextView = view.likesCountTV
     private var media : Media? = null
+    init {
+        view.likeIB.setOnClickListener {
+            media?.let { it1 -> onClick(it1, layoutPosition) }
+        }
+        view.commentIB.setOnClickListener {
+            media?.let { it1 -> onCommentsIBClick(it1) }
+        }
+    }
 
     fun bind(media: Media?) {
         this.media = media
         userTV.text = media?.user?.fullName?: "User 1"
-        userCaptionTV.text = media?.caption ?: ""
-        likesCountTV.text = media?.likeCount.toString()
+//        userCaptionTV.text = media?.caption ?: ""
+        likesCountTV.text = media?.likesCount.toString()
         if (media?.downloadURI?.startsWith("http") == true) {
             userIV.visibility = View.VISIBLE
             glide.load(media.downloadURI)
@@ -57,14 +69,15 @@ class MediaPostViewHolder(view: View, private val glide: GlideRequests)
             userIV.visibility = View.GONE
             glide.clear(userIV)
         }
-        likesCountTV.text = media?.likeCount.toString()
+        likesCountTV.text = media?.likesCount.toString()
+        likeIB.setImageResource(if(media?.likedByMe!!) R.mipmap.ic_like_black else R.mipmap.ic_like )
     }
 
     companion object {
-        fun create(parent: ViewGroup, glide: GlideRequests): MediaPostViewHolder {
+        fun create(onClick: (Media, Int) -> Unit, onCommentsIBClick:(Media)->Unit ,parent: ViewGroup, glide: GlideRequests): MediaPostViewHolder {
             val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.media_recycleview_row, parent, false)
-            return MediaPostViewHolder(view, glide)
+            return MediaPostViewHolder(onClick, onCommentsIBClick, view, glide)
         }
     }
 }

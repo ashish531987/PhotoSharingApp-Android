@@ -72,5 +72,14 @@ class MediaRepositoryImpl(private val mediaSharingApi: MediaSharingApi) : MediaR
         val request = mediaSharingApi.uploadMedia(userId, filePart)
         request.enqueue(callback)
     }
+    override fun likeMedia(userId: String, mediaId: Long, callback:Callback<Media>) {
+        val request = mediaSharingApi.likeMedia(userId, mediaId)
+        request.enqueue(callback)
+    }
+    override fun unlikeMedia(userId: String, mediaId: Long, callback:Callback<Media>) {
+        val request = mediaSharingApi.unlikeMedia(userId, mediaId)
+        request.enqueue(callback)
+    }
+
 }
 

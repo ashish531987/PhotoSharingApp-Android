@@ -16,9 +16,9 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class MediaMasterViewModel(private val repository: MediaRepository) : ViewModel() {
+class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     val REQ_CODE_GALLERY_IMAGE_CAPTURE = 1;
-    private val userId = MutableLiveData<String>()
+    var userId = MutableLiveData<String>()
     private val repoResult = map(userId) {
         repository.getMedia(it, 2)
     }
@@ -29,13 +29,6 @@ class MediaMasterViewModel(private val repository: MediaRepository) : ViewModel(
 
     fun refresh() {
         repoResult.value?.refresh?.invoke()
-    }
-    fun setUserId(userId: String): Boolean {
-        if (this.userId.value == userId) {
-            return false
-        }
-        this.userId.value = userId
-        return true
     }
 
     fun retry() {
@@ -68,12 +61,33 @@ class MediaMasterViewModel(private val repository: MediaRepository) : ViewModel(
                         override fun onResponse(call: Call<Media>, response: Response<Media>) {
                             if(response.isSuccessful){
                                 mediaDownloaded.value = response.body()
+                                refresh()
                             }
                         }
 
                     })
                 }
             }
+        }
+    }
+
+    fun likeMedia(media: Media) {
+        val callback = object : Callback<Media> {
+            override fun onFailure(call: Call<Media>, t: Throwable) {
+                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            }
+
+            override fun onResponse(call: Call<Media>, response: Response<Media>) {
+                if(response.isSuccessful){
+                    refresh()
+                }
+            }
+
+        }
+        if(media.likedByMe){
+            repository.unlikeMedia(userId.value!!, media.id, callback)
+        } else {
+            repository.likeMedia(userId.value!!, media.id, callback)
         }
     }
 }

@@ -3,7 +3,7 @@ package com.emergent.photosharingapp.repository
 import android.arch.lifecycle.MutableLiveData
 import android.arch.paging.DataSource
 import com.emergent.photosharingapp.api.MediaSharingApi
-import com.emergent.photosharingapp.domain.Media
+import com.emergent.photosharingapp.domain.Comments
 import java.util.concurrent.Executor
 
 /**
@@ -11,13 +11,14 @@ import java.util.concurrent.Executor
  * This allows us to channel its network request status etc back to the UI. See the Listing creation
  * in the Repository class.
  */
-class MediaDataSourceFactory(
+class CommentsDataSourceFactory(
         private val mediaSharingApi: MediaSharingApi,
         private val userId: String,
-        private val retryExecutor: Executor) : DataSource.Factory<String, Media>() {
-    val sourceLiveData = MutableLiveData<PageKeyedMediaDataSource>()
-    override fun create(): DataSource<String, Media> {
-        val source = PageKeyedMediaDataSource(mediaSharingApi, userId, retryExecutor)
+        private val mediaId: Long,
+        private val retryExecutor: Executor) : DataSource.Factory<String, Comments>() {
+    val sourceLiveData = MutableLiveData<PageKeyedCommentsDataSource>()
+    override fun create(): DataSource<String, Comments> {
+        val source = PageKeyedCommentsDataSource(mediaSharingApi, userId, mediaId, retryExecutor)
         sourceLiveData.postValue(source)
         return source
     }
