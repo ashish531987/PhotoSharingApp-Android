@@ -18,9 +18,12 @@ package com.emergent.photosharingapp.api
 
 import android.util.Log
 import com.emergent.photosharingapp.api.dto.requestDTO.CommentRequestDTO
+import com.emergent.photosharingapp.api.dto.requestDTO.SignInRequestDTO
 import com.emergent.photosharingapp.domain.Comments
 import com.emergent.photosharingapp.domain.Media
+import com.emergent.photosharingapp.domain.User
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -29,54 +32,60 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 
+
 /**
  * API communication setup
  */
 interface MediaSharingApi {
+    @POST("/tokensignin")
+    fun login(
+            @Body signInRequestDTO: SignInRequestDTO
+    ) : Call<User>
+
     @GET("/{user_id}/feed")
     fun getTop(
-            @Path("user_id") userId: String,
+            @Path("user_id") userId: Long,
             @Query("limit") limit: Int): Call<ListingResponse<Media>>
 
     // for after/before param, either get from RedditDataResponse.after/before,
     // or pass RedditNewsDataResponse.name (though this is technically incorrect)
     @GET("/{user_id}/feed")
     fun getTopAfter(
-            @Path("user_id") userId: String,
-            @Query("after") after: String,
+            @Path("user_id") userId: Long,
+            @Query("after") after: Long,
             @Query("limit") limit: Int): Call<ListingResponse<Media>>
 
     @Multipart
     @POST("/{user_id}/media/")
     fun uploadMedia(
-            @Path("user_id") userId: String,
+            @Path("user_id") userId: Long,
             @Part filePart : MultipartBody.Part): Call<Media>
 
     @GET("/{user_id}/media/{media_id}/comment")
     fun getTopComments(
-            @Path("user_id") userId: String,
+            @Path("user_id") userId: Long,
             @Path("media_id") mediaId: Long,
             @Query("limit") limit: Int
     ) : Call<ListingResponse<Comments>>
 
     @GET("/{user_id}/media/{media_id}/comment")
     fun getTopCommentsAfter(
-            @Path("user_id") userId: String,
+            @Path("user_id") userId: Long,
             @Path("media_id") mediaId: Long,
-            @Query("after") after: String,
+            @Query("after") after: Long,
             @Query("limit") limit: Int
     ) : Call<ListingResponse<Comments>>
 
     @PUT("/{user_id}/media/{media_id}/like")
-    fun likeMedia(@Path("user_id") userId: String,
+    fun likeMedia(@Path("user_id") userId: Long,
                   @Path("media_id") mediaId: Long) : Call<Media>
 
     @DELETE("/{user_id}/media/{media_id}/like")
-    fun unlikeMedia(@Path("user_id") userId: String,
+    fun unlikeMedia(@Path("user_id") userId: Long,
                   @Path("media_id") mediaId: Long) : Call<Media>
 
     @POST("/{user_id}/media/{media_id}/comment")
-    fun commentOnMedia(@Path("user_id") userId: String,
+    fun commentOnMedia(@Path("user_id") userId: Long,
                   @Path("media_id") mediaId: Long,
                     @Body commentRequestDTO : CommentRequestDTO) : Call<Media>
 
@@ -85,23 +94,32 @@ interface MediaSharingApi {
 
     class ListingData<T>(
             val children: List<T>,
-            val after: String?,
-            val before: String?
+            val after: Long?,
+            val before: Long?
     )
 
-//    data class MediaChildrenResponse(val data: Media)
-
     companion object {
-        private const val BASE_URL = "http://192.168.0.2:8080/"
-        fun create(): MediaSharingApi = create(HttpUrl.parse(BASE_URL)!!)
-        fun create(httpUrl: HttpUrl): MediaSharingApi {
+//        private const val BASE_URL = "http://192.168.0.2:8080/"
+        private const val BASE_URL = "http://192.168.2.37:8080/"
+        fun create(idToken : String): MediaSharingApi = create(HttpUrl.parse(BASE_URL)!!, idToken)
+        fun create(httpUrl: HttpUrl, idToken : String): MediaSharingApi {
             val logger = HttpLoggingInterceptor(HttpLoggingInterceptor.Logger {
                 Log.d("API", it)
             })
             logger.level = HttpLoggingInterceptor.Level.BASIC
+            val authorizationTokenInteceptor = Interceptor {
+                val original = it.request()
 
+                val request = original.newBuilder()
+                        .header("Authorization", idToken)
+                        .method(original.method(), original.body())
+                        .build()
+
+                return@Interceptor it.proceed(request)
+            }
             val client = OkHttpClient.Builder()
                     .addInterceptor(logger)
+                    .addInterceptor(authorizationTokenInteceptor)
                     .build()
             return Retrofit.Builder()
                     .baseUrl(httpUrl)

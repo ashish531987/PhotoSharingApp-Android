@@ -15,9 +15,9 @@ import java.util.concurrent.Executor
  */
 class PageKeyedCommentsDataSource(
         private val mediaSharingApi: MediaSharingApi,
-        private val userId: String,
+        private val userId: Long,
         private val mediaId: Long,
-        private val retryExecutor: Executor) : PageKeyedDataSource<String, Comments>() {
+        private val retryExecutor: Executor) : PageKeyedDataSource<Long, Comments>() {
 
     // keep a function reference for the retry event
     private var retry: (() -> Any)? = null
@@ -41,12 +41,12 @@ class PageKeyedCommentsDataSource(
     }
 
     override fun loadBefore(
-            params: LoadParams<String>,
-            callback: LoadCallback<String, Comments>) {
+            params: LoadParams<Long>,
+            callback: LoadCallback<Long, Comments>) {
         // ignored, since we only ever append to our initial load
     }
 
-    override fun loadAfter(params: LoadParams<String>, callback: LoadCallback<String, Comments>) {
+    override fun loadAfter(params: LoadParams<Long>, callback: LoadCallback<Long, Comments>) {
         networkState.postValue(NetworkState.LOADING)
         mediaSharingApi.getTopCommentsAfter(userId = userId,
                 mediaId = mediaId,
@@ -82,8 +82,8 @@ class PageKeyedCommentsDataSource(
     }
 
     override fun loadInitial(
-            params: LoadInitialParams<String>,
-            callback: LoadInitialCallback<String, Comments>) {
+            params: LoadInitialParams<Long>,
+            callback: LoadInitialCallback<Long, Comments>) {
         val request = mediaSharingApi.getTopComments(
                 userId = userId,
                 mediaId = mediaId,

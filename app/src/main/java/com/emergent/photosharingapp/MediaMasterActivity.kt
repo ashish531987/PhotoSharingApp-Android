@@ -19,25 +19,35 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.emergent.photosharingapp.api.MediaSharingApi
 import com.emergent.photosharingapp.domain.Media
+import com.emergent.photosharingapp.domain.User
 import com.emergent.photosharingapp.repository.MediaRepository
 import com.emergent.photosharingapp.repository.NetworkState
-import com.emergent.photosharingapp.ui.MediaViewModel
 import com.emergent.photosharingapp.ui.MediaRecyclerAdapter
+import com.emergent.photosharingapp.ui.MediaViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import kotlinx.android.synthetic.main.activity_media_master.*
 import kotlinx.android.synthetic.main.content_media_master.*
 
 class MediaMasterActivity : AppCompatActivity() {
-    private lateinit var mediaViewModel:MediaViewModel
-    private var mediaSharingApi = MediaSharingApi.create()
-    private var mediaRepository = com.emergent.photosharingapp.repository.MediaRepositoryImpl(mediaSharingApi)
-    private lateinit var adapter : MediaRecyclerAdapter
-    private val REQ_READ_EXT_STORAGE_PERM: Int = 1
-    private val userId : String = "1";
+    companion object {
+        private lateinit var user : User
+        private lateinit var idToken : String
+        private lateinit var mediaViewModel:MediaViewModel
+        private lateinit var mediaSharingApi : MediaSharingApi
+        private lateinit var mediaRepository : MediaRepository
+        private lateinit var adapter : MediaRecyclerAdapter
+        private val REQ_READ_EXT_STORAGE_PERM: Int = 1
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_master)
 
+        user = intent.getParcelableExtra("key")
+        idToken = intent.getStringExtra("idToken")
+        mediaSharingApi = MediaSharingApi.create(idToken)
+        mediaRepository = com.emergent.photosharingapp.repository.MediaRepositoryImpl(mediaSharingApi)
         mediaViewModel = getViewModel(mediaRepository)
 
         initAdapter()
@@ -72,7 +82,7 @@ class MediaMasterActivity : AppCompatActivity() {
                 }
             }
         }
-        mediaViewModel.userId.value = userId
+        mediaViewModel.userId.value = user.id
     }
 
     private fun makeRequest() {
@@ -91,9 +101,25 @@ class MediaMasterActivity : AppCompatActivity() {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+            when (item.itemId) {
+            R.id.action_sign_out -> {
+                signOut()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
+        }
+    }
+    fun signOut(){
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.server_client_id))
+                .requestEmail()
+                .build()
+        // Build a GoogleSignInClient with the options specified by gso.
+        val googleSignInClient = GoogleSignIn.getClient(this, gso)
+        if(googleSignInClient != null){
+            googleSignInClient.signOut()?.addOnCompleteListener {
+                loadLoginActivity()
+            }
         }
     }
     @Suppress("UNCHECKED_CAST")
@@ -107,6 +133,7 @@ class MediaMasterActivity : AppCompatActivity() {
     private fun initAdapter() {
         val glide = GlideApp.with(this)
         adapter = MediaRecyclerAdapter(
+                idToken,
                 { media: Media, position: Int ->
             run {
                 mediaViewModel.likeMedia(media)
@@ -167,7 +194,15 @@ class MediaMasterActivity : AppCompatActivity() {
     }
     private fun loadCommentsActivity(media : Media){
         val intent = Intent(this, CommentsActivity::class.java)
-        intent.putExtra("key", media)
+        intent.putExtra("key1", media)
+        intent.putExtra("key2", user)
+        intent.putExtra("idToken", idToken)
         startActivity(intent)
+    }
+    private fun loadLoginActivity(){
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
+        finish()
     }
 }

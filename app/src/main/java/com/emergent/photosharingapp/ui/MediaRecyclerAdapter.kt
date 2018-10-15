@@ -1,19 +1,16 @@
 package com.emergent.photosharingapp.ui
 
 import android.arch.paging.PagedListAdapter
-import android.content.Context
 import android.support.v7.util.DiffUtil
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import com.emergent.photosharingapp.GlideRequests
 import com.emergent.photosharingapp.R
 import com.emergent.photosharingapp.domain.Media
 import com.emergent.photosharingapp.repository.NetworkState
-import kotlinx.android.synthetic.main.media_recycleview_row.view.*
 
-class MediaRecyclerAdapter(private val onClick: (Media, Int) -> Unit,
+class MediaRecyclerAdapter(private val idToken : String,
+                           private val onClick: (Media, Int) -> Unit,
                            private val onCommentsIBClick : (Media) -> Unit,
                            private val glide: GlideRequests,
                            private val retryCallback: () -> Unit) :
@@ -34,7 +31,7 @@ class MediaRecyclerAdapter(private val onClick: (Media, Int) -> Unit,
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            R.layout.media_recycleview_row -> MediaPostViewHolder.create(onClick, onCommentsIBClick, parent, glide)
+            R.layout.media_recycleview_row -> MediaPostViewHolder.create(idToken, onClick, onCommentsIBClick, parent, glide)
             R.layout.network_state_item -> NetworkStateItemViewHolder.create(parent, retryCallback)
             else -> throw IllegalArgumentException("unknown view type $viewType")
         }

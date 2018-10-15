@@ -1,7 +1,9 @@
 <resources>
     <string name="app_name">PhotoSharingApp</string>
-    <string name="action_settings">Settings</string>
+    <string name="action_sign_out">Sign out</string>
     <string name="retry">Retry</string>
     <string name="read_perm_request_dialog_msg">Permission to access the storage is required for this app to upload photos.</string>
     <string name="read_perm_request_dialog_title">Permission required</string>
+    <string name="title_activity_login">Sign in</string>
+    <string name="server_client_id">212832759612-kpu18ime6fihlqc1je8l2840cc4tqfcl.apps.googleusercontent.com</string>
 </resources>

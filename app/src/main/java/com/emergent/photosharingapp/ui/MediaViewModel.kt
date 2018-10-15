@@ -9,7 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.MediaStore
 import android.support.v7.app.AppCompatActivity
-import com.emergent.photosharingapp.Utils.FileUtils
+import com.emergent.photosharingapp.utils.FileUtils
 import com.emergent.photosharingapp.domain.Media
 import com.emergent.photosharingapp.repository.MediaRepository
 import retrofit2.Call
@@ -18,7 +18,7 @@ import retrofit2.Response
 
 class MediaViewModel(private val repository: MediaRepository) : ViewModel() {
     val REQ_CODE_GALLERY_IMAGE_CAPTURE = 1;
-    var userId = MutableLiveData<String>()
+    var userId = MutableLiveData<Long>()
     private val repoResult = map(userId) {
         repository.getMedia(it, 2)
     }

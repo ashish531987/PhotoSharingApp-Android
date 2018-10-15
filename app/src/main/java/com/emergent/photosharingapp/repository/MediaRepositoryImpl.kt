@@ -16,20 +16,15 @@
 
 package com.emergent.photosharingapp.repository
 
-import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.Transformations
 import android.arch.paging.LivePagedListBuilder
-import android.net.Uri
 import android.support.annotation.MainThread
 import com.emergent.photosharingapp.api.MediaSharingApi
 import com.emergent.photosharingapp.domain.Media
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.Call
 import retrofit2.Callback
-import retrofit2.Response
 import java.io.File
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
@@ -41,7 +36,7 @@ import java.util.concurrent.Executors
 class MediaRepositoryImpl(private val mediaSharingApi: MediaSharingApi) : MediaRepository {
     private val networkExecutor: Executor = Executors.newFixedThreadPool(5)
     @MainThread
-    override fun getMedia(userId: String, pageSize: Int): Listing<Media> {
+    override fun getMedia(userId: Long, pageSize: Int): Listing<Media> {
         val sourceFactory = MediaDataSourceFactory(mediaSharingApi, userId, networkExecutor)
 
         val livePagedList = LivePagedListBuilder(sourceFactory, pageSize)
@@ -67,16 +62,16 @@ class MediaRepositoryImpl(private val mediaSharingApi: MediaSharingApi) : MediaR
                 refreshState = refreshState
         )
     }
-    override fun uploadMedia(userId: String, file: File, callback:Callback<Media>) {
+    override fun uploadMedia(userId: Long, file: File, callback:Callback<Media>) {
         val filePart = MultipartBody.Part.createFormData("file", file.getName(), RequestBody.create(MediaType.parse("image/*"), file))
         val request = mediaSharingApi.uploadMedia(userId, filePart)
         request.enqueue(callback)
     }
-    override fun likeMedia(userId: String, mediaId: Long, callback:Callback<Media>) {
+    override fun likeMedia(userId: Long, mediaId: Long, callback:Callback<Media>) {
         val request = mediaSharingApi.likeMedia(userId, mediaId)
         request.enqueue(callback)
     }
-    override fun unlikeMedia(userId: String, mediaId: Long, callback:Callback<Media>) {
+    override fun unlikeMedia(userId: Long, mediaId: Long, callback:Callback<Media>) {
         val request = mediaSharingApi.unlikeMedia(userId, mediaId)
         request.enqueue(callback)
     }

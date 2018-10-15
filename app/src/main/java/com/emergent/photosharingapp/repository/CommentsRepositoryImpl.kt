@@ -12,7 +12,7 @@ import java.util.concurrent.Executors
 
 class CommentsRepositoryImpl(private val mediaSharingApi: MediaSharingApi) : CommentsRepository {
     private val networkExecutor: Executor = Executors.newFixedThreadPool(5)
-    override fun getCommentsForMedia(userId: String, mediaId: Long, pageSize: Int): Listing<Comments> {
+    override fun getCommentsForMedia(userId: Long, mediaId: Long, pageSize: Int): Listing<Comments> {
         val sourceFactory = CommentsDataSourceFactory(mediaSharingApi, userId, mediaId, networkExecutor)
 
         val livePagedList = LivePagedListBuilder(sourceFactory, pageSize)
@@ -39,7 +39,7 @@ class CommentsRepositoryImpl(private val mediaSharingApi: MediaSharingApi) : Com
         )
     }
 
-    override fun commentOnMedia(userId: String, mediaId: Long, comment: String, callback: Callback<Media>) {
+    override fun commentOnMedia(userId: Long, mediaId: Long, comment: String, callback: Callback<Media>) {
         val request = mediaSharingApi.commentOnMedia(userId, mediaId, CommentRequestDTO(comment))
         request.enqueue(callback)
     }

@@ -13,11 +13,11 @@ import java.util.concurrent.Executor
  */
 class CommentsDataSourceFactory(
         private val mediaSharingApi: MediaSharingApi,
-        private val userId: String,
+        private val userId: Long,
         private val mediaId: Long,
-        private val retryExecutor: Executor) : DataSource.Factory<String, Comments>() {
+        private val retryExecutor: Executor) : DataSource.Factory<Long, Comments>() {
     val sourceLiveData = MutableLiveData<PageKeyedCommentsDataSource>()
-    override fun create(): DataSource<String, Comments> {
+    override fun create(): DataSource<Long, Comments> {
         val source = PageKeyedCommentsDataSource(mediaSharingApi, userId, mediaId, retryExecutor)
         sourceLiveData.postValue(source)
         return source

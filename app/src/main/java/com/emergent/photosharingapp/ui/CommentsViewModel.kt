@@ -11,10 +11,10 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class CommentsViewModel(private val repository: CommentsRepository) : ViewModel() {
-    var userId = MutableLiveData<String>()
+    var userId = MutableLiveData<Long>()
     var mediaId = MutableLiveData<Long>()
     private val repoResult = map(mediaId) {
-        repository.getCommentsForMedia(userId.value.orEmpty(), it, 2)
+        repository.getCommentsForMedia(userId.value!!, it, 2)
     }
     val posts = switchMap(repoResult) { it.pagedList }!!
     val networkState = switchMap(repoResult) { it.networkState }!!

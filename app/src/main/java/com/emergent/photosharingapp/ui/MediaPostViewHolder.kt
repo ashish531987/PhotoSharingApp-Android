@@ -16,16 +16,15 @@
 
 package com.emergent.photosharingapp.ui
 
-import android.content.Intent
-import android.net.Uri
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
 import com.emergent.photosharingapp.GlideRequests
 import com.emergent.photosharingapp.R
 import com.emergent.photosharingapp.domain.Media
@@ -34,15 +33,14 @@ import kotlinx.android.synthetic.main.media_recycleview_row.view.*
 /**
  * A RecyclerView ViewHolder that displays a reddit post.
  */
-class MediaPostViewHolder(val onClick: (Media, Int) -> Unit,
+class MediaPostViewHolder(val idToken : String,
+                          val onClick: (Media, Int) -> Unit,
                           val onCommentsIBClick : (Media) -> Unit,
                           view: View, private val glide: GlideRequests)
     : RecyclerView.ViewHolder(view) {
     private val userTV: TextView = view.userNameTV
     private val userIV : ImageView = view.userIV
     private val likeIB: ImageButton = view.likeIB
-    private val commentIB: ImageButton = view.commentIB
-    private val userCaptionTV: TextView = view.userCaptionTV
     private val likesCountTV: TextView = view.likesCountTV
     private var media : Media? = null
     init {
@@ -61,7 +59,8 @@ class MediaPostViewHolder(val onClick: (Media, Int) -> Unit,
         likesCountTV.text = media?.likesCount.toString()
         if (media?.downloadURI?.startsWith("http") == true) {
             userIV.visibility = View.VISIBLE
-            glide.load(media.downloadURI)
+            val glideUrl = GlideUrl(media.downloadURI, LazyHeaders.Builder().addHeader("Authorization", idToken).build())
+            glide.load(glideUrl)
                     .centerCrop()
                     .placeholder(R.drawable.ic_insert_photo_black_48dp)
                     .into(userIV)
@@ -74,10 +73,10 @@ class MediaPostViewHolder(val onClick: (Media, Int) -> Unit,
     }
 
     companion object {
-        fun create(onClick: (Media, Int) -> Unit, onCommentsIBClick:(Media)->Unit ,parent: ViewGroup, glide: GlideRequests): MediaPostViewHolder {
+        fun create(idToken:String, onClick: (Media, Int) -> Unit, onCommentsIBClick:(Media)->Unit ,parent: ViewGroup, glide: GlideRequests): MediaPostViewHolder {
             val view = LayoutInflater.from(parent.context)
                     .inflate(R.layout.media_recycleview_row, parent, false)
-            return MediaPostViewHolder(onClick, onCommentsIBClick, view, glide)
+            return MediaPostViewHolder(idToken, onClick, onCommentsIBClick, view, glide)
         }
     }
 }

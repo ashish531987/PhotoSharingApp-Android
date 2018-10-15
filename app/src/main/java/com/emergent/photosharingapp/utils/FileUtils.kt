@@ -1,12 +1,9 @@
-package com.emergent.photosharingapp.Utils
+package com.emergent.photosharingapp.utils
 
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import java.io.*
-
-import java.nio.ByteBuffer
-import java.nio.file.Files
 
 object FileUtils {
     private val BUFFER_SIZE = 8192

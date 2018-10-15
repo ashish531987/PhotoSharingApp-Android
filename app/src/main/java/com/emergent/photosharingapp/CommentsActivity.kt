@@ -14,6 +14,7 @@ import android.widget.EditText
 import com.emergent.photosharingapp.api.MediaSharingApi
 import com.emergent.photosharingapp.domain.Comments
 import com.emergent.photosharingapp.domain.Media
+import com.emergent.photosharingapp.domain.User
 import com.emergent.photosharingapp.repository.CommentsRepository
 import com.emergent.photosharingapp.repository.NetworkState
 import com.emergent.photosharingapp.ui.CommentsRecyclerAdapter
@@ -23,20 +24,26 @@ import kotlinx.android.synthetic.main.activity_comments.*
 class CommentsActivity : AppCompatActivity() {
     companion object {
         private lateinit var media : Media
-        private var mediaSharingApi = MediaSharingApi.create()
+        private lateinit var user : User
+        private lateinit var idToken : String
+        private lateinit var mediaSharingApi : MediaSharingApi
         private lateinit var commentsViewModel: CommentsViewModel
-        private var commentsRepository = com.emergent.photosharingapp.repository.CommentsRepositoryImpl(mediaSharingApi)
+        private lateinit var commentsRepository : CommentsRepository
         private lateinit var adapter : CommentsRecyclerAdapter
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_comments)
-        media = intent.getParcelableExtra("key")
+        media = intent.getParcelableExtra("key1")
+        user = intent.getParcelableExtra("key2")
+        idToken = intent.getStringExtra("idToken")
+        mediaSharingApi = MediaSharingApi.create(idToken)
+        commentsRepository = com.emergent.photosharingapp.repository.CommentsRepositoryImpl(mediaSharingApi)
         commentsViewModel = getViewModel(commentsRepository)
         initAdapter()
         initSwipeToRefresh()
-        commentsViewModel.userId.value = "1"
+        commentsViewModel.userId.value = user.id
         commentsViewModel.mediaId.value = media.id
         commentIB.setOnClickListener {
             if(commentET.text.toString().isValidComment()){

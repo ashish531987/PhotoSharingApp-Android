@@ -15,8 +15,8 @@ import java.util.concurrent.Executor
  */
 class PageKeyedMediaDataSource(
         private val mediaSharingApi: MediaSharingApi,
-        private val userId: String,
-        private val retryExecutor: Executor) : PageKeyedDataSource<String, Media>() {
+        private val userId: Long,
+        private val retryExecutor: Executor) : PageKeyedDataSource<Long, Media>() {
 
     // keep a function reference for the retry event
     private var retry: (() -> Any)? = null
@@ -40,12 +40,12 @@ class PageKeyedMediaDataSource(
     }
 
     override fun loadBefore(
-            params: LoadParams<String>,
-            callback: LoadCallback<String, Media>) {
+            params: LoadParams<Long>,
+            callback: LoadCallback<Long, Media>) {
         // ignored, since we only ever append to our initial load
     }
 
-    override fun loadAfter(params: LoadParams<String>, callback: LoadCallback<String, Media>) {
+    override fun loadAfter(params: LoadParams<Long>, callback: LoadCallback<Long, Media>) {
         networkState.postValue(NetworkState.LOADING)
         mediaSharingApi.getTopAfter(userId = userId,
                 after = params.key,
@@ -80,8 +80,8 @@ class PageKeyedMediaDataSource(
     }
 
     override fun loadInitial(
-            params: LoadInitialParams<String>,
-            callback: LoadInitialCallback<String, Media>) {
+            params: LoadInitialParams<Long>,
+            callback: LoadInitialCallback<Long, Media>) {
         val request = mediaSharingApi.getTop(
                 userId = userId,
                 limit = params.requestedLoadSize

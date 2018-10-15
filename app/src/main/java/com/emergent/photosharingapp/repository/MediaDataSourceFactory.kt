@@ -13,10 +13,10 @@ import java.util.concurrent.Executor
  */
 class MediaDataSourceFactory(
         private val mediaSharingApi: MediaSharingApi,
-        private val userId: String,
-        private val retryExecutor: Executor) : DataSource.Factory<String, Media>() {
+        private val userId: Long,
+        private val retryExecutor: Executor) : DataSource.Factory<Long, Media>() {
     val sourceLiveData = MutableLiveData<PageKeyedMediaDataSource>()
-    override fun create(): DataSource<String, Media> {
+    override fun create(): DataSource<Long, Media> {
         val source = PageKeyedMediaDataSource(mediaSharingApi, userId, retryExecutor)
         sourceLiveData.postValue(source)
         return source
